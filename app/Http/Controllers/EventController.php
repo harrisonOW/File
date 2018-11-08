@@ -17,7 +17,7 @@ class EventController extends Controller
     {
         //This will be used to return all the Events
         $events = Event::all();
-        return view('eventsViews.partials.index', ['events' => $events]);
+        return view('eventsViews.index', ['events' => $events]);
 
     }
 
@@ -25,7 +25,7 @@ class EventController extends Controller
     {
         //This will be used to return all the Events
 
-        return view('eventsViews.partials.show', compact('event'));
+        return view('eventsViews.show', compact('event'));
 
     }
 

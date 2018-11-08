@@ -21,17 +21,31 @@ Route::get('/home', 'HomeController@index')->name('home');
 
 Route::group(['middleware' => ['auth']], function () {
     Route::namespace('Admin')->group(function () {
-        // Controllers Within The "App\Http\Controllers\Admin" Namespace
-        Route::resource('Event', 'EventController')->only([
-            'create', 'store', 'edit', 'update', 'destroy'
-        ]);
+        Route::prefix('admin')->group(function () {
+            Route::resource('Event', 'EventController')->only([
+                'create', 'store', 'index'
+            ]);
+            Route::get('Event/{event}', 'EventController@show');
+            Route::get('Event/edit/{event}', 'EventController@edit');
+            Route::patch('Event/{event}', 'EventController@update');
+            Route::delete('Event/{event}', 'EventController@destroy');
+
+        });
     });
 });
-
-
 
 Route::resource('Event', 'EventController')->only([
     'index'
 ]);
 
 Route::get('/Event/{event}', 'EventController@show');
+
+
+
+Route::group(['middleware' => ['auth']], function () {
+    Route::resource('Bookings', 'BookingController')->only([
+        'index','show','store'
+    ]);
+
+});
+

@@ -16,10 +16,18 @@ class CreateBookingSystemEventsTable extends Migration
         Schema::create('booking_system_events', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
-            $table->string('description');
-            $table->string('img_path');
+            $table->text('description');
+            $table->decimal('price')->nullable();
+            $table->string('external_link')->nullable();
+            $table->integer('capacity');
+            $table->integer('booking_per_person');
+            $table->string('img_path')->default("/images/event.jpg");
+            $table->text('event_address');
+            $table->decimal('long', 10, 7);
+            $table->decimal('lat', 10, 7);
             $table->dateTime('start_date');
             $table->dateTime('end_date');
+            $table->timestamp('cancelled_at');
             $table->timestamps();
         });
     }

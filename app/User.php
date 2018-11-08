@@ -19,6 +19,10 @@ class User extends Authenticatable
         'name', 'email', 'password',
     ];
 
+    public function UserBookings(){
+        return $this->hasMany(Booking::class, "user_id");
+    }
+
     /**
      * The attributes that should be hidden for arrays.
      *

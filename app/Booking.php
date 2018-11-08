@@ -7,10 +7,10 @@
  */
 
 namespace App;
-use App\Event;
-use App\Booking_Extra;
-use App\Event_Extra;
-use App\User;
+//use App\Event;
+//use App\Booking_Extra;
+//use App\Event_Extra;
+//use App\User;
 use Illuminate\Database\Eloquent\Model;
 
 class Booking extends model
@@ -36,6 +36,16 @@ class Booking extends model
     public function ExtrasBooked(){
         return $this->hasMany(Booking_Extra::class,'booking_id'); //This will allow the extras which have been booked along with the event
     }
+
+    public function ExtrasCost(){
+        $cost = 0.00;
+        foreach($this->ExtrasBooked as $extra)
+        {
+            $cost += $extra->total_extra_cost;
+        }
+        return $cost;
+    }
+
 
     protected $table = 'booking_system_event_bookings';
 }

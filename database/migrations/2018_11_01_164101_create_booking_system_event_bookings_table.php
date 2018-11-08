@@ -17,6 +17,10 @@ class CreateBookingSystemEventBookingsTable extends Migration
             $table->increments('id');
             $table->unsignedInteger('event_id');
             $table->unsignedInteger('user_id');
+            $table->unsignedInteger('booking_quantity');
+            $table->decimal('total_event_cost',10,2);
+            $table->decimal('individual_price',10,2);
+            $table->decimal('total_cost',10,2);
             $table->timestamps();
         });
     }

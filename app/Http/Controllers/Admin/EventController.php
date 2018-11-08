@@ -2,121 +2,137 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Requests\StoreEditEvent;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreEvent;
+
 use App\Event;
+use App\Event_Extra;
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 class EventController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+
     public function index()
     {
         //This will be used to return all the Events
         $events = Event::all();
-        return view('eventsViews.index', ['events' => $events]);
+        return view('eventsViews.Admin.index', ['events' => $events]);
 
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+
     public function create()
     {
         //
-        return view('eventsViews.partials.create');
+        return view('eventsViews.Admin.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+
+
+    public function store(StoreEvent $request)
     {
-        //
-        $format = 'Y/m/d h:m:s';
-        if ($request->EventStartDate) {
-            $request->EventStartDate = Carbon::parse($request->EventStartDate)->format('Y/m/d h:m:s');
-        }
-        if ($request->EventEndDate) {
-            $request->EventEndDate = Carbon::parse($request->EventEndDate)->format('Y/m/d h:m:s');
+        $request = $this->formatDate($request);
+
+        $event = $this->AddEvent($request);
+        if ($request->Extra_Name != null ) {
+            foreach($request->Extra_Name as $key => $ExtraName){
+                $event->BookableExtras()->create(["name" => $request->Extra_Name[$key], "description" => $request->Extra_Description[$key], "external_path" => $request->Extra_Path[$key],
+                "price" => $request->Extra_Price[$key], "optional" => $request->Extra_Optional[$key], 'amount_available' => $request->Extra_AmountAvailable[$key], 'extras_per_person' => $request->Extra_PerPerson[$key]]);
+            }
         }
 
-        $validatedData = $request->validate([
-            'EventName' => ['required','min:5','max:255'],
-            'EventDescription' => ['required','min:5','max:500'],
-            'EventImg_path' => ['required'],
-            'EventStartDate' => ['required','date'],
-            'EventEndDate' => ['required','date'],
-        ]);
-//        dd($request->EventEndDate, $request->EventStartDate  );
+    return redirect($event->path());
+    }
+
+
+
+    public function AddEvent($request){
+
         $event = Event::create([
             'name' => $request->EventName,
             'description' => $request->EventDescription,
+            'price' => $request->EventPrice,
+            'external_link' => $request->EventExternalLink,
+            'capacity' => $request->EventCapacity,
+            'booking_per_person' => $request->EventPerPerson,
             'img_path' => $request->EventImg_path,
-            'start_date' => $request->EventStartDate ,
-            'end_date'  => $request->EventEndDate,
+            'event_address' => $request->Event_address,
+            'long' => $request->Event_long,
+            'lat' => $request->Event_lat,
+            'start_date' => $request->EventStartDate,
+            'end_date' => $request->EventEndDate,
 
         ]);
 
-    return redirect($event->path());
-
-
-
-
-
+        return $event;
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+
+
     public function show(Event $event)
     {
-        //
+        return view('eventsViews.Admin.show', ['event' => $event]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+
     public function edit(Event $event)
     {
-        //
-        return view('eventsViews.partials.edit', ['event' => $event]);
+
+        return view('eventsViews.Admin.edit', ['event' => $event]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
+
+    public function update(StoreEditEvent $request, Event $event)
+    {
+        dd($request);
+        $request = $this->formatDate($request);
+        //Check and Add changes made to event, this shouldnt change its id or that
+        $event->update(['name' => $request->EventName, 'description' => $request->EventDescription, 'price' => $request->EventPrice, 'external_link' => $request->EventExternalLink,
+            'capacity' => $request->EventCapacity, 'booking_per_person' => $request->EventPerPerson, 'img_path' => $request->EventImg_path, 'location' => $request->EventLocation, 'start_date' => $request->EventStartDate, 'end_date' => $request->EventEndDate]);
+
+        if (!$request->ExistingExtra_Name == null) {
+            //if the existing have been updated
+            foreach ($request->Extra_id_for as $key => $ExtraId)
+            {
+                //"optional" => $request->ExistingExtra_Optional[$key]
+
+                Event_Extra::find($ExtraId)
+                ->update(["name" => $request->ExistingExtra_Name[$key], "description" => $request->ExistingExtra_Description[$key], "external_path" => $request->ExistingExtra_Path[$key],
+                    "price" => $request->ExistingExtra_Price[$key],  'amount_available' => $request->ExistingExtra_AmountAvailable[$key], 'extras_per_person' => $request->ExistingExtra_PerPerson[$key]]);
+            }
+        }
+        dd("HI");
+        if(!$request->Extra_Name == null){
+            //if more have been added
+            foreach($request->Extra_Name as $key => $EventName)
+                {
+                    //"optional" => $request->Extra_Optional[$key],
+                    $event->BookableExtras()->create(["name" => $request->Extra_Name[$key], "description" => $request->Extra_Description[$key], "external_path" => $request->Extra_Path[$key],
+                        "price" => $request->Extra_Price[$key], 'amount_available' => $request->Extra_AmountAvailable[$key], 'extras_per_person' => $request->Extra_PerPerson[$key]]);
+                }
+        }
+
+        return redirect($event->path());
+    }
+
+    public function destroy(Event $event)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+    public function formatDate($request){
+        $format = 'Y/m/d h:m:s';
+        if ($request->EventStartDate && $request->EventEndDate) {
+            $request->EventStartDate = Carbon::parse($request->EventStartDate)->format('Y/m/d h:m:s');
+            $request->EventEndDate = Carbon::parse($request->EventEndDate)->format('Y/m/d h:m:s');
+            return $request;
+        } else {
+            return back()->withErrors(['You have mis-entered a date field', 'You have mis-entered a time field']);;
+        }
     }
+
+
+
+
 }

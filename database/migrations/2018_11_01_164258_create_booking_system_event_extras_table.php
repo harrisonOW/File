@@ -17,7 +17,13 @@ class CreateBookingSystemEventExtrasTable extends Migration
             $table->increments('id');
             $table->unsignedInteger('event_id');
             $table->string('name');
-            $table->decimal('price');
+            $table->text('description');
+            $table->string('external_path')->default("Null");
+            $table->string('optional');
+            $table->decimal('price')->default(0.0);
+            $table->integer('extras_per_person');
+            $table->integer('amount_available');
+            $table->timestamp('cancelled_at')->default(null);
             $table->timestamps();
         });
     }

@@ -12,9 +12,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Booking_Extra extends model
 {
+    protected $guarded = [];
 
     public function ExtraBelongsTo(){
         return $this->belongsTo(Booking::class,'booking_id'); // This will show what the extra booked, is booked with ie.
+        //which user booked the event, and to which event
+    }
+
+    public function ExtraIsOf(){
+        return $this->belongsTo(Event_Extra::class,'extra_id'); // This will show what the extra booked, is booked with ie.
         //which user booked the event, and to which event
     }
 
